@@ -1,0 +1,161 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  username    String   @unique
+  password    String
+  firstName   String?
+  lastName    String?
+  avatar      String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  notices         Notice[]         @relation("NoticeAuthor")
+  noticeShares    NoticeShare[]
+  noticeComments  NoticeComment[]
+  groups          GroupMember[]
+  createdGroups   Group[]          @relation("GroupCreator")
+
+  @@map("users")
+}
+
+model Notice {
+  id          String      @id @default(cuid())
+  title       String
+  content     String
+  color       String?     @default("#fef3c7") // Default yellow color
+  priority    Priority    @default(MEDIUM)
+  status      NoticeStatus @default(ACTIVE)
+  isPublic    Boolean     @default(false)
+  authorId    String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  expiresAt   DateTime?
+
+  // Relations
+  author      User            @relation("NoticeAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  shares      NoticeShare[]
+  comments    NoticeComment[]
+  tags        NoticeTag[]
+
+  @@map("notices")
+}
+
+model NoticeShare {
+  id        String      @id @default(cuid())
+  noticeId  String
+  userId    String?
+  groupId   String?
+  permission SharePermission @default(READ)
+  createdAt DateTime    @default(now())
+
+  // Relations
+  notice    Notice      @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  user      User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     Group?      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  // Ensure either user or group is specified, but not both
+  @@unique([noticeId, userId])
+  @@unique([noticeId, groupId])
+  @@map("notice_shares")
+}
+
+model NoticeComment {
+  id        String   @id @default(cuid())
+  content   String
+  noticeId  String
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  notice    Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("notice_comments")
+}
+
+model NoticeTag {
+  id        String   @id @default(cuid())
+  name      String
+  color     String?  @default("#3b82f6") // Default blue color
+  noticeId  String
+  createdAt DateTime @default(now())
+
+  // Relations
+  notice    Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+
+  @@unique([name, noticeId])
+  @@map("notice_tags")
+}
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isPublic    Boolean  @default(false)
+  creatorId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  creator     User          @relation("GroupCreator", fields: [creatorId], references: [id])
+  members     GroupMember[]
+  noticeShares NoticeShare[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id        String    @id @default(cuid())
+  groupId   String
+  userId    String
+  role      GroupRole @default(MEMBER)
+  joinedAt  DateTime  @default(now())
+
+  // Relations
+  group     Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@map("group_members")
+}
+
+// Enums
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum NoticeStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum SharePermission {
+  READ
+  WRITE
+  ADMIN
+}
+
+enum GroupRole {
+  MEMBER
+  MODERATOR
+  ADMIN
+}
