@@ -15,7 +15,7 @@ A professional, modern digital notice board application for managing tasks, note
 
 ## 🚀 Live Demo
 
-Visit the live application: [Digital Notice Board](https://your-github-username.github.io/notice-board-enhanced)
+Visit the live application: [Digital Notice Board](https://alpha2931.github.io/notice-board-enhanced/)
 
 ## Overview
 
