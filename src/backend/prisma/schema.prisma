@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -19,6 +19,7 @@ model User {
   lastName    String?
   avatar      String?
   isActive    Boolean  @default(true)
+  isAdmin     Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -37,8 +38,8 @@ model Notice {
   title       String
   content     String
   color       String?     @default("#fef3c7") // Default yellow color
-  priority    Priority    @default(MEDIUM)
-  status      NoticeStatus @default(ACTIVE)
+  priority    String      @default("MEDIUM")
+  status      String      @default("ACTIVE")
   isPublic    Boolean     @default(false)
   authorId    String
   createdAt   DateTime    @default(now())
@@ -59,7 +60,7 @@ model NoticeShare {
   noticeId  String
   userId    String?
   groupId   String?
-  permission SharePermission @default(READ)
+  permission String          @default("READ")
   createdAt DateTime    @default(now())
 
   // Relations
@@ -123,7 +124,7 @@ model GroupMember {
   id        String    @id @default(cuid())
   groupId   String
   userId    String
-  role      GroupRole @default(MEMBER)
+  role      String    @default("MEMBER")
   joinedAt  DateTime  @default(now())
 
   // Relations
@@ -134,28 +135,8 @@ model GroupMember {
   @@map("group_members")
 }
 
-// Enums
-enum Priority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
-
-enum NoticeStatus {
-  ACTIVE
-  ARCHIVED
-  DELETED
-}
-
-enum SharePermission {
-  READ
-  WRITE
-  ADMIN
-}
-
-enum GroupRole {
-  MEMBER
-  MODERATOR
-  ADMIN
-}
+// Enums converted to strings for SQLite compatibility
+// Priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT"
+// NoticeStatus: "ACTIVE" | "ARCHIVED" | "DELETED"
+// SharePermission: "READ" | "WRITE" | "ADMIN"
+// GroupRole: "MEMBER" | "MODERATOR" | "ADMIN"

@@ -1,10 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 interface AuthRequest extends Request {
   user?: {
     userId: string;
     email: string;
+    isAdmin?: boolean;
   };
 }
 
@@ -44,5 +48,39 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     
     console.error('Authentication error:', error);
     res.status(500).json({ message: 'Authentication failed.' });
+  }
+};
+
+// Middleware to require admin privileges
+export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    // First authenticate the user
+    const authResult = await new Promise<void>((resolve, reject) => {
+      authenticate(req, res, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required.' });
+    }
+
+    // Check if user is admin
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { isAdmin: true }
+    });
+
+    if (!user || !user.isAdmin) {
+      return res.status(403).json({ message: 'Admin privileges required.' });
+    }
+
+    // Add isAdmin flag to req.user
+    req.user.isAdmin = true;
+    next();
+  } catch (error) {
+    console.error('Admin authentication error:', error);
+    res.status(500).json({ message: 'Admin authentication failed.' });
   }
 };

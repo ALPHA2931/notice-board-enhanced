@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Notice Board</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .add-notice-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .add-notice-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        .notice-form {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: transform 0.2s ease;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: #333;
+            transform: scale(1.2);
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e1e8ed;
+            color: #333;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .notices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .notice {
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notice:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.25);
+        }
+
+        .notice::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4));
+        }
+
+        .notice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .notice-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: rgba(0,0,0,0.8);
+            margin-bottom: 5px;
+        }
+
+        .notice-date {
+            font-size: 0.9rem;
+            color: rgba(0,0,0,0.6);
+            background: rgba(255,255,255,0.7);
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        .notice-content {
+            color: rgba(0,0,0,0.7);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .notice-priority {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .priority-low { background: #4caf50; }
+        .priority-medium { background: #ff9800; }
+        .priority-high { background: #f44336; }
+        .priority-urgent { 
+            background: #e91e63; 
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(244, 67, 54, 0.8);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .notice:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            background: rgba(244, 67, 54, 1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+            opacity: 0.8;
+        }
+
+        .empty-state h3 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+        }
+
+        /* Color classes for notices */
+        .color-yellow { background: linear-gradient(135deg, #fff3a0, #fed766); }
+        .color-blue { background: linear-gradient(135deg, #a8e6cf, #88d8c0); }
+        .color-pink { background: linear-gradient(135deg, #ffc3d8, #ff8fab); }
+        .color-green { background: linear-gradient(135deg, #c8e6c9, #a5d6a7); }
+        .color-orange { background: linear-gradient(135deg, #ffcc80, #ffb74d); }
+        .color-purple { background: linear-gradient(135deg, #d1c4e9, #b39ddb); }
+        .color-red { background: linear-gradient(135deg, #ffcdd2, #ef9a9a); }
+        .color-teal { background: linear-gradient(135deg, #b2dfdb, #80cbc4); }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .notices-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Digital Notice Board</h1>
+            <p>Stay organized with colorful sticky notes</p>
+        </div>
+
+        <button class="add-notice-btn" onclick="showAddForm()">
+            ➕ Add New Notice
+        </button>
+
+        <div class="notice-form" id="noticeForm">
+            <h3 style="margin-bottom: 20px; color: #333;">Create New Notice</h3>
+            <form onsubmit="addNotice(event)">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="content">Content</label>
+                    <textarea id="content" name="content" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="priority">Priority</label>
+                    <select id="priority" name="priority" style="width: 100%; padding: 12px; border: 2px solid #e1e8ed; border-radius: 10px; font-size: 16px;">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Choose Color</label>
+                    <div class="color-picker">
+                        <div class="color-option selected" data-color="yellow" style="background: linear-gradient(135deg, #fff3a0, #fed766);"></div>
+                        <div class="color-option" data-color="blue" style="background: linear-gradient(135deg, #a8e6cf, #88d8c0);"></div>
+                        <div class="color-option" data-color="pink" style="background: linear-gradient(135deg, #ffc3d8, #ff8fab);"></div>
+                        <div class="color-option" data-color="green" style="background: linear-gradient(135deg, #c8e6c9, #a5d6a7);"></div>
+                        <div class="color-option" data-color="orange" style="background: linear-gradient(135deg, #ffcc80, #ffb74d);"></div>
+                        <div class="color-option" data-color="purple" style="background: linear-gradient(135deg, #d1c4e9, #b39ddb);"></div>
+                        <div class="color-option" data-color="red" style="background: linear-gradient(135deg, #ffcdd2, #ef9a9a);"></div>
+                        <div class="color-option" data-color="teal" style="background: linear-gradient(135deg, #b2dfdb, #80cbc4);"></div>
+                    </div>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="hideAddForm()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Notice</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="notices-grid" id="noticesGrid">
+            <div class="empty-state">
+                <h3>🎨 No notices yet!</h3>
+                <p>Click "Add New Notice" to create your first colorful note</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let notices = [];
+        let selectedColor = 'yellow';
+
+        // Color picker functionality
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelector('.color-option.selected').classList.remove('selected');
+                this.classList.add('selected');
+                selectedColor = this.dataset.color;
+            });
+        });
+
+        function showAddForm() {
+            document.getElementById('noticeForm').style.display = 'block';
+            document.getElementById('title').focus();
+        }
+
+        function hideAddForm() {
+            document.getElementById('noticeForm').style.display = 'none';
+            clearForm();
+        }
+
+        function clearForm() {
+            document.getElementById('title').value = '';
+            document.getElementById('content').value = '';
+            document.getElementById('priority').value = 'medium';
+            
+            // Reset color selection to yellow
+            document.querySelector('.color-option.selected').classList.remove('selected');
+            document.querySelector('.color-option[data-color="yellow"]').classList.add('selected');
+            selectedColor = 'yellow';
+        }
+
+        function addNotice(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('title').value.trim();
+            const content = document.getElementById('content').value.trim();
+            const priority = document.getElementById('priority').value;
+            
+            if (!title || !content) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const notice = {
+                id: Date.now(),
+                title: title,
+                content: content,
+                priority: priority,
+                color: selectedColor,
+                date: new Date().toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+            };
+
+            notices.unshift(notice);
+            renderNotices();
+            hideAddForm();
+            
+            // Save to localStorage
+            localStorage.setItem('notices', JSON.stringify(notices));
+        }
+
+        function deleteNotice(id) {
+            if (confirm('Are you sure you want to delete this notice?')) {
+                notices = notices.filter(notice => notice.id !== id);
+                renderNotices();
+                localStorage.setItem('notices', JSON.stringify(notices));
+            }
+        }
+
+        function renderNotices() {
+            const grid = document.getElementById('noticesGrid');
+            
+            if (notices.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <h3>🎨 No notices yet!</h3>
+                        <p>Click "Add New Notice" to create your first colorful note</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = notices.map(notice => `
+                <div class="notice color-${notice.color}">
+                    <button class="delete-btn" onclick="deleteNotice(${notice.id})" title="Delete notice">
+                        ✕
+                    </button>
+                    <div class="notice-header">
+                        <div>
+                            <div class="notice-title">${notice.title}</div>
+                            <div class="notice-date">${notice.date}</div>
+                        </div>
+                    </div>
+                    <div class="notice-content">${notice.content}</div>
+                    <div class="notice-priority priority-${notice.priority}">
+                        ${notice.priority}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load notices from localStorage on page load
+        window.onload = function() {
+            const savedNotices = localStorage.getItem('notices');
+            if (savedNotices) {
+                notices = JSON.parse(savedNotices);
+                renderNotices();
+            }
+
+            // Add some sample notices if none exist
+            if (notices.length === 0) {
+                const sampleNotices = [
+                    {
+                        id: 1,
+                        title: "🎉 Welcome to Your Notice Board!",
+                        content: "This is your colorful digital notice board. You can add notes, choose colors, set priorities, and keep yourself organized!",
+                        priority: "high",
+                        color: "blue",
+                        date: new Date().toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })
+                    },
+                    {
+                        id: 2,
+                        title: "📝 Sample Note",
+                        content: "Try clicking the 'Add New Notice' button to create your own colorful notes. You can choose from 8 different colors and 4 priority levels!",
+                        priority: "medium",
+                        color: "yellow",
+                        date: new Date().toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })
+                    }
+                ];
+                notices = sampleNotices;
+                renderNotices();
+                localStorage.setItem('notices', JSON.stringify(notices));
+            }
+        };
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            // ESC to close form
+            if (event.key === 'Escape') {
+                hideAddForm();
+            }
+            
+            // Ctrl+N to add new notice
+            if (event.ctrlKey && event.key === 'n') {
+                event.preventDefault();
+                showAddForm();
+            }
+        });
+    </script>
+</body>
+</html>

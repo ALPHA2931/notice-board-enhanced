@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "nodemon --exec ts-node src/backend/server.ts",
-    "dev:frontend": "cd src/frontend && npm run dev",
+    "dev:frontend": "cd src/frontend && npm start",
     "build": "npm run build:backend && npm run build:frontend",
     "build:backend": "tsc -p src/backend/tsconfig.json",
     "build:frontend": "cd src/frontend && npm run build",
@@ -21,7 +21,15 @@
     "db:studio": "prisma studio",
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up",
-    "docker:down": "docker-compose down"
+    "docker:down": "docker-compose down",
+    "start:production": "npm run build && npm run db:migrate:prod && npm start",
+    "db:migrate:prod": "prisma migrate deploy",
+    "db:generate:prod": "prisma generate",
+    "deploy:vercel": "vercel --prod",
+    "deploy:railway": "railway deploy",
+    "deploy:netlify": "netlify deploy --prod",
+    "postbuild": "npm run db:generate:prod",
+    "create-admin": "ts-node scripts/create-admin.ts"
   },
   "keywords": [
     "notice-board",
@@ -45,7 +53,10 @@
     "jsonwebtoken": "^9.0.2",
     "socket.io": "^4.7.4",
     "uuid": "^9.0.1",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "roaring": "^2.4.0",
+    "bloom-filters": "^3.0.1",
+    "node-cron": "^3.0.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

@@ -8,13 +8,15 @@ import dotenv from 'dotenv';
 
 import { authRoutes } from './routes/auth';
 import { noticeRoutes } from './routes/notices';
+import { enhancedNoticesRouter } from './routes/enhanced-notices';
 import { userRoutes } from './routes/users';
+import adminRoutes from './routes/admin';
 import { errorHandler } from './middleware/errorHandler';
 import { setupSocketHandlers } from './services/socketService';
 import { prisma } from './utils/database';
 
 // Load environment variables
-dotenv.config({ path: 'config/.env' });
+dotenv.config();
 
 const app = express();
 const server = createServer(app);
@@ -60,7 +62,9 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/notices', noticeRoutes);
+app.use('/api/enhanced-notices', enhancedNoticesRouter);
 app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Setup Socket.IO handlers
 setupSocketHandlers(io);
